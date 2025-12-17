@@ -10,7 +10,8 @@ Container::Container()
   : ContainerInterface(),
     stream_state_(),
     page_(),
-    packet_()
+    packet_(),
+    frames_since_flush_(0)
 {
   // Nothing to do
 }
@@ -35,6 +36,7 @@ void Container::init(uint32_t sample_rate, uint8_t channel_count, int serial)
   packet_.packet = nullptr;
   packet_.packetno = 0;
   packet_.bytes = 0;
+  frames_since_flush_ = 0;
 
   // Generate ID Page
   produceIDPage();
@@ -45,7 +47,17 @@ void Container::init(uint32_t sample_rate, uint8_t channel_count, int serial)
 void Container::writeFrame(void *data, std::size_t size, int num_samples)
 {
   writePacket((uint8_t *)data, size, num_samples, false);
+  frames_since_flush_++;
+  
+  // Try to produce a page normally first
   while (producePacketPage(false) != 0) {}
+  
+  // For low-latency streaming, force flush every 2-3 frames (10-15ms at 5ms frame size)
+  // This balances latency with overhead (too frequent = many small pages)
+  if (frames_since_flush_ >= 2) {
+    producePacketPage(true); // Force flush
+    frames_since_flush_ = 0;
+  }
 }
 void Container::produceIDPage(void)
 {

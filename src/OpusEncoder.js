@@ -3,17 +3,17 @@ const { EmscriptenMemoryAllocator } = require('./commonFunctions.js');
 /**
  * Configuration
  */
-const OPUS_APPLICATION = 2049; /** Defined in opus_defines.h
+const OPUS_APPLICATION = 2051; /** Defined in opus_defines.h
                                 *  2048: OPUS_APPLICATION_VOIP = Voice (Lower fidelity)
                                 *  2049: OPUS_APPLICATION_AUDIO = Full Band Audio (Highest fidelity)
                                 *  2051: OPUS_APPLICATION_RESTRICTED_LOWDELAY = Restricted Low Delay (Lowest latency) */
-const OPUS_OUTPUT_SAMPLE_RATE = 48000; // Desired encoding sample rate. Audio will be resampled
-const OPUS_OUTPUT_MAX_LENGTH = 4000;
-const OPUS_FRAME_SIZE = 20; // Specified in ms.
+const OPUS_OUTPUT_SAMPLE_RATE = 16000; // Desired encoding sample rate. Audio will be resampled
+const OPUS_OUTPUT_MAX_LENGTH = 1000; // Reduced for smaller frames (5ms at 16kHz = 80 samples, max packet ~200 bytes)
+const OPUS_FRAME_SIZE = 5; // Specified in ms. Reduced from 10ms for lower latency (valid: 2.5, 5, 10, 20, 40, 60ms)
 
-const SPEEX_RESAMPLE_QUALITY = 6; // Value between 0 and 10 inclusive. 10 being highest quality.
+const SPEEX_RESAMPLE_QUALITY = 3; // Reduced from 6 for lower latency (0-10, lower = faster but slightly lower quality)
 
-const BUFFER_LENGTH = 4096;
+const BUFFER_LENGTH = 1024; // Reduced from 2048 for lower latency (smaller buffer = faster processing)
 
 /**
  * Constants used for libraries
@@ -106,7 +106,7 @@ class _OpusEncoder {
         // Input packget to Ogg or WebM page generator
         this._container.writeFrame(this.mOutputBuffer.pointer,
                                    packetLength,
-                                   this.outputSamplePerChannel); // 960 samples
+                                   this.outputSamplePerChannel); // 80 samples (5ms at 16kHz)
         this.inputBufferIndex = 0;
       }
       sampleIndex += lengthToCopy;

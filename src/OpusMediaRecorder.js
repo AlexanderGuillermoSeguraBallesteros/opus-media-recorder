@@ -3,7 +3,7 @@ const { detect } = require('detect-browser');
 const browser = detect();
 
 const AudioContext = global.AudioContext || global.webkitAudioContext;
-const BUFFER_SIZE = 4096;
+const BUFFER_SIZE = 2048;
 
 /**
  * Reference: https://w3c.github.io/mediacapture-record/#mediarecorder-api

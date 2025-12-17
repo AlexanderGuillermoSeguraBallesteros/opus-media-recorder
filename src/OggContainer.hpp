@@ -74,6 +74,7 @@ private:
   ogg_stream_state stream_state_;
   ogg_page page_;
   ogg_packet packet_;
+  int frames_since_flush_; // Track frames since last forced flush for low-latency streaming
 
   /**
    * @brief   Insert data (or a packet). The inserted data can be later collected
